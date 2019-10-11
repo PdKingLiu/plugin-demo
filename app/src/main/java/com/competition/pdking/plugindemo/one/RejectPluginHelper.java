@@ -1,7 +1,7 @@
 package com.competition.pdking.plugindemo.one;
 
-import android.app.ActivityManager;
 import android.content.Context;
+import android.util.Log;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -28,6 +28,7 @@ public class RejectPluginHelper {
         //获得PathList的element并合并
         Object newElements = mergeElements(getElements(suzhuPathList),
                 getElements(chajianPathList));
+        Log.d("Lpp", "newElements: " + Array.getLength(newElements));
 
         //重新设置给宿主的dexElement
         Field field = suzhuPathList.getClass().getDeclaredField("dexElements");
@@ -35,7 +36,9 @@ public class RejectPluginHelper {
         field.set(suzhuPathList, newElements);
     }
 
-    private static Object mergeElements(Object elements1, Object elements2) {
+    private static Object mergeElements(Object elements2, Object elements1) {
+        Log.d("Lpp", "suzhuPathList: " + Array.getLength(elements1));
+        Log.d("Lpp", "chajianPathList: " + Array.getLength(elements2));
         int len1 = Array.getLength(elements1);
         int len2 = Array.getLength(elements2);
         Object newArr = Array.newInstance(elements1.getClass().getComponentType(), len1 + len2);

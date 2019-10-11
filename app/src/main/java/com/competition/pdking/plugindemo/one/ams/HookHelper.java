@@ -1,5 +1,6 @@
 package com.competition.pdking.plugindemo.one.ams;
 
+import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
@@ -14,7 +15,7 @@ import java.lang.reflect.Proxy;
  */
 public class HookHelper {
 
-    public static void hookActivityManager() throws ClassNotFoundException, NoSuchFieldException,
+    public static void hookActivityManager(Context context) throws ClassNotFoundException, NoSuchFieldException,
             IllegalAccessException {
 
         //得到ActivityManagerNative的class对象
@@ -36,7 +37,7 @@ public class HookHelper {
         //给IActivityManager设置代理
         Object proxy = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[]{Class.forName("android.app.IActivityManager")},
-                new IActivityManagerProxy(activityManagerObj));
+                new IActivityManagerProxy(activityManagerObj, context));
 
         //将代理对象设置给gDefault
         mInstanceField.set(gDefaultObj, proxy);
@@ -48,7 +49,8 @@ public class HookHelper {
 
         //先得到ActivityThread对象，他有一个返回自己本身的方法
         Class activityThreadClass = Class.forName("android.app.ActivityThread");
-        Method currentActivityThreadMethod = activityThreadClass.getMethod("currentActivityThread");
+        Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod(
+                "currentActivityThread");
         currentActivityThreadMethod.setAccessible(true);
         Object activityThreadObj = currentActivityThreadMethod.invoke(null);
 
@@ -60,8 +62,27 @@ public class HookHelper {
         //给mH设置mCallback
         Field callBackField = Handler.class.getDeclaredField("mCallback");
         callBackField.setAccessible(true);
-        callBackField.set(handleObj, new ChangeCallBack((android.os.Handler) handleObj));
+        ChangeCallBack changeCallBack = new ChangeCallBack((android.os.Handler) handleObj);
+        Log.d("Lpp", "hookActivityThread 1: " + changeCallBack);
+        callBackField.set(handleObj, changeCallBack);
         Log.d("Lpp", "替换回Intent");
+
+        Class activityThreadClass2 = Class.forName("android.app.ActivityThread");
+        Method currentActivityThreadMethod2 = activityThreadClass2.getDeclaredMethod(
+                "currentActivityThread");
+        currentActivityThreadMethod2.setAccessible(true);
+        Object activityThreadObj2 = currentActivityThreadMethod2.invoke(null);
+
+        //得到他的成员 mH
+        Field mHField2 = activityThreadClass2.getDeclaredField("mH");
+        mHField2.setAccessible(true);
+        Object handleObj2 = mHField2.get(activityThreadObj2);
+
+        //给mH设置mCallback
+        Field callBackField2 = Handler.class.getDeclaredField("mCallback");
+        callBackField2.setAccessible(true);
+        Log.d("Lpp", "hookActivityThread 2: " + callBackField2.get(handleObj2));
+
     }
 
 }

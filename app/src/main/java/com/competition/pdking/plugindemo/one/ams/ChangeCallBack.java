@@ -20,7 +20,6 @@ public class ChangeCallBack implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message msg) {
-
         switch (msg.what) {
             case 100:
                 try {
@@ -40,11 +39,11 @@ public class ChangeCallBack implements Handler.Callback {
             IllegalAccessException {
         Object obj = msg.obj;
 
-
         Field intent = obj.getClass().getDeclaredField("intent");
         intent.setAccessible(true);
         Intent fakeIntent = (Intent) intent.get(obj);
         Intent targetIntent = fakeIntent.getParcelableExtra("targetIntent");
-        fakeIntent.setComponent(targetIntent.getComponent());
+//        fakeIntent.setComponent(targetIntent.getComponent());
+        intent.set(obj, targetIntent);
     }
 }
